@@ -19,24 +19,38 @@ const blogger = google.blogger({ version: 'v3', auth: oauth2Client });
 const AFFILIATE_LINK = "https://your-affiliate-link.com";
 const AFFILIATE_TOOL_NAME = "اسم أداة الذكاء الاصطناعي";
 
+// 📡 مصادر الأخبار باللغة العربية المتخصصة في الذكاء الاصطناعي والتقنية
+const ARABIC_RSS_SOURCES = [
+  'https://news.google.com/rss/search?q=%D8%A7%D9%84%D8%B0%D9%83%D8%A7%D8%A1+%D8%A7%D9%84%D8%A7%D8%B5%D8%B7%D9%86%D8%A7%D8%B9%D9%8A&hl=ar&gl=EG&ceid=EG:ar', // جوجل نيوز - الذكاء الاصطناعي
+  'https://news.google.com/rss/search?q=ChatGPT+OpenAI&hl=ar&gl=EG&ceid=EG:ar', // جوجل نيوز - ChatGPT و OpenAI
+  'https://aitnews.com/feed/', // البوابة العربية للأخبار التقنية
+  'https://www.aljazeera.net/rss/behind-the-news/science-and-technology', // الجزيرة نت - علوم وتكنولوجيا
+  'https://www.unlimit-tech.com/feed/', // التقنية بلا حدود
+  'https://www.tech-wd.com/wd/feed/', // عالم التقنية
+  'https://arageek.com/tech/feed' // أراجيك تك
+];
+
 async function runAutoBlogger() {
-  console.log("🔍 جاري جلب أحدث الأخبار من المصدر...");
-  // جلب أخبار الذكاء الاصطناعي من TechCrunch
-  const feed = await parser.parseURL('https://techcrunch.com/category/artificial-intelligence/feed/');
-  
-  // أخذ أحدث خبر
-  const latestNews = feed.items[0];
+  // اختيار مصدر عشوائي من القائمة العربية
+  const randomSource = ARABIC_RSS_SOURCES[Math.floor(Math.random() * ARABIC_RSS_SOURCES.length)];
+  console.log(`🔍 جاري جلب أحدث الأخبار من المصدر: ${randomSource}`);
+
+  const feed = await parser.parseURL(randomSource);
+
+  // أخذ خبر عشوائي من أول 5 أخبار لمنع التكرار
+  const randomIndex = Math.floor(Math.random() * Math.min(5, feed.items.length));
+  const latestNews = feed.items[randomIndex];
   console.log(`📌 الخبر الأصلي: ${latestNews.title}`);
 
-  // 2. إرسال الخبر للترجمة وإعادة الصياغة ودمج التسويق بالعمولة
-  console.log("🤖 جاري معالجة الخبر وترجمته عبر Gemini...");
+  // 2. إرسال الخبر لإعادة الصياغة ودمج التسويق بالعمولة
+  console.log("🤖 جاري معالجة الخبر وإعادة صياغته عبر Gemini...");
   const prompt = `
-  أنت صحفي متخصص في تقنيات الذكاء الاصطناعي. قم بمعالجة الخبر التالي:
+  أنت صحفي متخصص في تقنيات الذكاء الاصطناعي. قم بمعالجة الخبر العربي التالي:
   العنوان الأصلي: ${latestNews.title}
-  المحتوى الأصلي: ${latestNews.contentSnippet || latestNews.content}
+  المحتوى الأصلي: ${latestNews.contentSnippet || latestNews.content || latestNews.title}
 
   المطلوب:
-  1. ترجمة الخبر إلى اللغة العربية وإعادة صياغته بأسلوب صحفي احترافي وسلس جداً.
+  1. إعادة صياغة الخبر بأسلوب صحفي احترافي وسلس جداً باللغة العربية (بدون ترجمة حرفية).
   2. صياغة عنوان جذاب ومحسّن للبحث (SEO) باللغة العربية.
   3. تقسيم المحتوى إلى فقرات واستخدام عناوين فرعية H2 عند الحاجة.
   4. إضافة فقرة قصيرة في النهاية ترشح أداة "${AFFILIATE_TOOL_NAME}" لاستخدامها في تطبيقات الذكاء الاصطناعي وربطها بالرابط التالي: ${AFFILIATE_LINK}
@@ -55,7 +69,7 @@ async function runAutoBlogger() {
 
   const result = JSON.parse(response.text);
 
-  // إضافة سطر المصدر في نهاية المقال لضمان الاحترافية
+  // إضافة سطر المصدر في نهاية المقال
   const finalHtml = `
     ${result.contentHtml}
     <hr />
