@@ -3,7 +3,7 @@ name: Auto Post AI News to Blogger
 on:
   schedule:
     # يعمل السكريبت تلقائياً كل 8 ساعات (3 مرات يومياً)
-    - cron: '0 */8 * * *'
+    - cron: '0 * * * *'
   workflow_dispatch: # يتيح لك تشغيل السكريبت يدوياً بنقرة زر في أي وقت
 
 jobs:
