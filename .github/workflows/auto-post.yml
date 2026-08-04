@@ -1,0 +1,32 @@
+name: Auto Post AI News to Blogger
+
+on:
+  schedule:
+    # يعمل السكريبت تلقائياً كل 8 ساعات (3 مرات يومياً)
+    - cron: '0 */8 * * *'
+  workflow_dispatch: # يتيح لك تشغيل السكريبت يدوياً بنقرة زر في أي وقت
+
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Auto Blogger Script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          BLOG_ID: ${{ secrets.BLOG_ID }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        run: node index.js
