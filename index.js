@@ -3,9 +3,6 @@ const Parser = require('rss-parser');
 const { GoogleGenAI } = require('@google/genai');
 const { google } = require('googleapis');
 
-// زيادة وقت التنفيذ المسموح به على Vercel لضمان عدم توقف الدالة
-export const maxDuration = 60; 
-
 const parser = new Parser();
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -18,17 +15,18 @@ oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN })
 
 const blogger = google.blogger({ version: 'v3', auth: oauth2Client });
 
-const AFFILIATE_LINK = "[https://your-affiliate-link.com](https://your-affiliate-link.com)";
+const AFFILIATE_LINK = "https://your-affiliate-link.com";
 const AFFILIATE_TOOL_NAME = "اسم أداة الذكاء الاصطناعي";
 
+// 📡 مصادر الأخبار العربية
 const ARABIC_RSS_SOURCES = [
-  '[https://news.google.com/rss/search?q=%D8%A7%D9%84%D8%B0%D9%83%D8%A7%D8%A1+%D8%A7%D9%84%D8%A7%D8%B5%D8%B7%D9%86%D8%A7%D8%B9%D9%8A&hl=ar&gl=EG&ceid=EG:ar](https://news.google.com/rss/search?q=%D8%A7%D9%84%D8%B0%D9%83%D8%A7%D8%A1+%D8%A7%D9%84%D8%A7%D8%B5%D8%B7%D9%86%D8%A7%D8%B9%D9%8A&hl=ar&gl=EG&ceid=EG:ar)',
-  '[https://news.google.com/rss/search?q=ChatGPT+OpenAI&hl=ar&gl=EG&ceid=EG:ar](https://news.google.com/rss/search?q=ChatGPT+OpenAI&hl=ar&gl=EG&ceid=EG:ar)',
-  '[https://aitnews.com/feed/](https://aitnews.com/feed/)',
-  '[https://www.aljazeera.net/rss/behind-the-news/science-and-technology](https://www.aljazeera.net/rss/behind-the-news/science-and-technology)',
-  '[https://www.unlimit-tech.com/feed/](https://www.unlimit-tech.com/feed/)',
-  '[https://www.tech-wd.com/wd/feed/](https://www.tech-wd.com/wd/feed/)',
-  '[https://arageek.com/tech/feed](https://arageek.com/tech/feed)'
+  'https://news.google.com/rss/search?q=%D8%A7%D9%84%D8%B0%D9%83%D8%A7%D8%A1+%D8%A7%D9%84%D8%A7%D8%B5%D8%B7%D9%86%D8%A7%D8%B9%D9%8I&hl=ar&gl=EG&ceid=EG:ar',
+  'https://news.google.com/rss/search?q=ChatGPT+OpenAI&hl=ar&gl=EG&ceid=EG:ar',
+  'https://aitnews.com/feed/',
+  'https://www.aljazeera.net/rss/behind-the-news/science-and-technology',
+  'https://www.unlimit-tech.com/feed/',
+  'https://www.tech-wd.com/wd/feed/',
+  'https://arageek.com/tech/feed'
 ];
 
 async function runAutoBlogger() {
@@ -37,7 +35,7 @@ async function runAutoBlogger() {
 
   const feed = await parser.parseURL(randomSource);
   if (!feed.items || feed.items.length === 0) {
-    throw new Error("لم يتم العثور على أي أخبار في المصدر المحدد.");
+    throw new Error("لم يتم العثور على أخبار في هذا المصدر.");
   }
 
   const randomIndex = Math.floor(Math.random() * Math.min(5, feed.items.length));
@@ -68,7 +66,7 @@ async function runAutoBlogger() {
     config: { responseMimeType: "application/json" }
   });
 
-  // تنظيف النص المرجَع لضمان قراءته كـ JSON بدون أخطاء
+  // معالجة وتنظيف نص الـ JSON المرجَع من النموذج
   let rawText = response.text.trim();
   if (rawText.startsWith('```json')) {
     rawText = rawText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
@@ -98,6 +96,7 @@ async function runAutoBlogger() {
   return blogResponse.data.url;
 }
 
+// التصدير القياسي المعتمد في Vercel مع Node.js
 module.exports = async (req, res) => {
   try {
     const postUrl = await runAutoBlogger();
