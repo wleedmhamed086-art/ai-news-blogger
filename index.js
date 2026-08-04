@@ -1,23 +1,23 @@
-require('dotenv').config();
-const Parser = require('rss-parser');
-const { GoogleGenAI } = require('@google/genai');
-const { google } = require('googleapis');
+require('dotenv').config();[cite: 1]
+const Parser = require('rss-parser');[cite: 1]
+const { GoogleGenAI } = require('@google/genai');[cite: 1]
+const { google } = require('googleapis');[cite: 1]
 
-const parser = new Parser();
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const parser = new Parser();[cite: 1]
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });[cite: 1]
 
 // 1. إعداد الاتصال بـ Blogger API
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET
-);
-oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
+);[cite: 1]
+oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });[cite: 1]
 
-const blogger = google.blogger({ version: 'v3', auth: oauth2Client });
+const blogger = google.blogger({ version: 'v3', auth: oauth2Client });[cite: 1]
 
 // رابط الأداة التي تسوق لها بالعمولة
-const AFFILIATE_LINK = "https://your-affiliate-link.com";
-const AFFILIATE_TOOL_NAME = "اسم أداة الذكاء الاصطناعي";
+const AFFILIATE_LINK = "https://your-affiliate-link.com";[cite: 1]
+const AFFILIATE_TOOL_NAME = "اسم أداة الذكاء الاصطناعي";[cite: 1]
 
 // 📡 مصادر الأخبار باللغة العربية المتخصصة في الذكاء الاصطناعي والتقنية
 const ARABIC_RSS_SOURCES = [
@@ -28,22 +28,22 @@ const ARABIC_RSS_SOURCES = [
   'https://www.unlimit-tech.com/feed/', // التقنية بلا حدود
   'https://www.tech-wd.com/wd/feed/', // عالم التقنية
   'https://arageek.com/tech/feed' // أراجيك تك
-];
+];[cite: 1]
 
 async function runAutoBlogger() {
   // اختيار مصدر عشوائي من القائمة العربية
-  const randomSource = ARABIC_RSS_SOURCES[Math.floor(Math.random() * ARABIC_RSS_SOURCES.length)];
-  console.log(`🔍 جاري جلب أحدث الأخبار من المصدر: ${randomSource}`);
+  const randomSource = ARABIC_RSS_SOURCES[Math.floor(Math.random() * ARABIC_RSS_SOURCES.length)];[cite: 1]
+  console.log(`🔍 جاري جلب أحدث الأخبار من المصدر: ${randomSource}`);[cite: 1]
 
-  const feed = await parser.parseURL(randomSource);
+  const feed = await parser.parseURL(randomSource);[cite: 1]
 
   // أخذ خبر عشوائي من أول 5 أخبار لمنع التكرار
-  const randomIndex = Math.floor(Math.random() * Math.min(5, feed.items.length));
-  const latestNews = feed.items[randomIndex];
-  console.log(`📌 الخبر الأصلي: ${latestNews.title}`);
+  const randomIndex = Math.floor(Math.random() * Math.min(5, feed.items.length));[cite: 1]
+  const latestNews = feed.items[randomIndex];[cite: 1]
+  console.log(`📌 الخبر الأصلي: ${latestNews.title}`);[cite: 1]
 
   // 2. إرسال الخبر لإعادة الصياغة ودمج التسويق بالعمولة
-  console.log("🤖 جاري معالجة الخبر وإعادة صياغته عبر Gemini...");
+  console.log("🤖 جاري معالجة الخبر وإعادة صياغته عبر Gemini...");[cite: 1]
   const prompt = `
   أنت صحفي متخصص في تقنيات الذكاء الاصطناعي. قم بمعالجة الخبر العربي التالي:
   العنوان الأصلي: ${latestNews.title}
@@ -59,25 +59,26 @@ async function runAutoBlogger() {
     "title": "العنوان بالعربية",
     "contentHtml": "محتوى المقال بتنسيق HTML جاهز"
   }
-  `;
+  `;[cite: 1]
 
+  // تم تحديث اسم النموذج للنسخة الرسمية الحالية المعتمدة من SDK
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     contents: prompt,
     config: { responseMimeType: "application/json" }
   });
 
-  const result = JSON.parse(response.text);
+  const result = JSON.parse(response.text);[cite: 1]
 
   // إضافة سطر المصدر في نهاية المقال
   const finalHtml = `
     ${result.contentHtml}
     <hr />
     <p><small>المصدر الأصلي للخبر: <a href="${latestNews.link}" target="_blank" rel="nofollow">${latestNews.blogTitle || 'المصدر'}</a></small></p>
-  `;
+  `;[cite: 1]
 
   // 3. النشر الآلي على بلوجر
-  console.log("🚀 جاري نشر المقال على Blogger...");
+  console.log("🚀 جاري نشر المقال على Blogger...");[cite: 1]
   const blogResponse = await blogger.posts.insert({
     blogId: process.env.BLOG_ID,
     requestBody: {
@@ -85,26 +86,26 @@ async function runAutoBlogger() {
       content: finalHtml,
       labels: ['أخبار الذكاء الاصطناعي', 'تقنية']
     }
-  });
+  });[cite: 1]
 
-  console.log(`✅ تم نشر المقال بنجاح! الرابط: ${blogResponse.data.url}`);
-  return blogResponse.data.url;
+  console.log(`✅ تم نشر المقال بنجاح! الرابط: ${blogResponse.data.url}`);[cite: 1]
+  return blogResponse.data.url;[cite: 1]
 }
 
 // التصدير الخاص بـ Vercel Serverless Function
 module.exports = async (req, res) => {
   try {
-    const postUrl = await runAutoBlogger();
+    const postUrl = await runAutoBlogger();[cite: 1]
     return res.status(200).json({ 
       success: true, 
       message: "تم نشر المقال بنجاح على Blogger!",
       url: postUrl 
-    });
+    });[cite: 1]
   } catch (error) {
-    console.error("❌ حدث خطأ أثناء التنفيذ:", error);
+    console.error("❌ حدث خطأ أثناء التنفيذ:", error);[cite: 1]
     return res.status(500).json({ 
       success: false, 
       error: error.message 
-    });
+    });[cite: 1]
   }
 };
